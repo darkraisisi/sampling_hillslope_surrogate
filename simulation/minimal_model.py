@@ -10,22 +10,22 @@ def step(B, D, g, warm_up=0):
     def dX_dt(B,D,g):
         dB_dt_step = (1-(1-i)*np.exp(-1*D/d))*(r*B*(1-B/c))-g*B/(s+B)
         dD_dt_step = Wo*np.exp(-1*a*D)-np.exp(-1*B/b)*(Et+np.exp(-1*D/k)*(Eo-Et))-C
-        return dB_dt_step, dD_dt_step
+        return dB_dt_step * dt, dD_dt_step * dt
     
     def apply_change(B, delta_B, D, delta_D, clip=True):
+        B += delta_B
+        D += delta_D
+
         if clip:
-            B = np.clip(B + (delta_B * dt), 0.0, c)
-            D = np.clip(D + (delta_D * dt), 0.0, alpha)
-        else:
-            B += (delta_B * dt)
-            D += (delta_D * dt)
+            B = np.clip(B, 0.0, c)
+            D = np.clip(D, 0.0, alpha)
+
         return B, D
     
     # Warm-up steps plus final true step.
     for i in range(warm_up+1):
         delta_B, delta_D = dX_dt(B,D,g)
-        print(f"({i}) Delta B: {delta_B:.3f}, Delta D: {delta_D:.10f}")
-        B, D = apply_change(B, delta_B, D, delta_D)
-        print(f"({i}) New B: {B:.3f}, New D: {D:.10f}")
+        # B, D = apply_change(B, delta_B, D, delta_D) # This messes with the results
 
-    return B, D, delta_B, delta_D
+    return delta_B, delta_D
+    # return B, D, delta_B, delta_D

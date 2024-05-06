@@ -1,15 +1,20 @@
 from simulation import minimal_model as mm
 from sampling import grid
+from visualise import stream
 
 import numpy as np
 
-# # Grid testing
-# eg = grid.EqualGrid()
-# stack = eg.sample_stack([(0, 10), (0, 10)], 10)
-# print(stack, len(stack))
+# Minimal model testing
+g = 1.7
+B_lim, D_lim = 2.9, 0.4
 
-# # Minimal model testing
-alpha = np.log(5e-4/ 1e-4)/4.02359478109
-B, D, g = 1.5, (alpha/2), 1.7
-print(f"(init) B: {B:.3f}, D: {D:.10f}")
-B_, D_ = mm.step(B,D,g, warm_up=0)
+# Grid search
+eg = grid.EqualStack()
+D_grid, B_grid = eg.sample_stack([(0, D_lim), (0, B_lim)], 100)
+
+# Run miminal model
+(next_B, delta_B), (next_D, delta_D) = mm.step(B_grid, D_grid, g, warm_up=0)
+# print((next_B[-1][-1], delta_B[-1][-1]), (next_D[-1][-1], delta_D[-1][-1]))
+
+# Plot change
+stream.show(D_grid, B_grid, delta_D, delta_B, g)

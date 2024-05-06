@@ -1,6 +1,6 @@
-from numpy import meshgrid, linspace
+from numpy import meshgrid, random
 
-class EqualStack:
+class RandomStack:
     def __init__(self) -> None:
         pass
 
@@ -8,7 +8,7 @@ class EqualStack:
         points_per_feature = []
         for (start, end) in features:
             assert end > start
-            
-            points_per_feature.append(linspace(start, end, n_points))
+
+            points_per_feature.append(random.uniform(start, end, n_points))
         return meshgrid(*points_per_feature)
 

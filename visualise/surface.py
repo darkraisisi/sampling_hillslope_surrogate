@@ -85,13 +85,13 @@ def show(D_grid, B_grid, dD_dt, dB_dt, D_lim, B_lim):
                     alpha=1, shade=False ,rstride=scale_surface, cstride=scale_surface)
 
     dB_dt_0 = ax[0].contour3D(X=B_grid, Y=D_grid, Z=dB_dt, levels = [0.0], linewidths=0)
-    st_eq_B, un_eq_B = eq_lines(dB_dt_0, grad_B, B_lim, D_lim, 100)
+    st_eq_B, un_eq_B = eq_lines(dB_dt_0, grad_B, B_lim, D_lim, len(dB_dt))
     plot_lines(st_eq_B, un_eq_B, ax[0])
 
     # ax[1]
     ax[1].plot_surface(B_grid, D_grid, dD_dt, cmap=my_cmap_desaturated, linewidth=0.25, edgecolor = 'black', 
                 alpha=1, shade=False ,rstride=scale_surface, cstride=scale_surface)
 
-    dB_dt_0 = ax[1].contour3D(X=B_grid, Y=D_grid, Z=dD_dt, levels = [0.0], linewidths=0)
-    st_eq_B, un_eq_B = eq_lines(dB_dt_0, grad_D, B_lim, D_lim, 100)
+    dD_dt_0 = ax[1].contour3D(X=B_grid, Y=D_grid, Z=dD_dt, levels = [0.0], linewidths=0)
+    st_eq_B, un_eq_B = eq_lines(dD_dt_0, grad_D, B_lim, D_lim, len(dD_dt))
     plot_lines(st_eq_B, un_eq_B, ax[1])

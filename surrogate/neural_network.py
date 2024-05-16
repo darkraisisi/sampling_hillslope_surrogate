@@ -8,7 +8,7 @@ import tensorflow as tf
 from keras import backend as K
 
 class NeuralNetwork():
-    def __init__(self, uid=None) -> None:
+    def __init__(self, hp, uid=None) -> None:
         self.dB_dt_std, self.dD_dt_std = 0, 0
 
         self.model = None
@@ -18,14 +18,7 @@ class NeuralNetwork():
             self.uid = datetime.now().strftime('%Y%m%d_%H%M')
 
         self.name = f"NeuralNet_{self.uid}"
-        self.hp = {
-            'units': (9, 27, 81, 162, 324, 648, 1296),
-            'act_fun': 'relu',
-            'learning_rate': 1E-4,
-            'batch_size': 2 ** 12,
-            'l1_reg': 1e-4,
-            'n_epochs': 100
-        }
+        self.hp = hp
         self.paths = {
             'hist': 'data/history/',
             'model': 'data/model/',
@@ -37,6 +30,8 @@ class NeuralNetwork():
             self.model = self.load_model(self.name)
 
     def save_model(self, model, name):
+        if self.model == None:
+            raise Exception("No model present to save.")
         model.save(f"{self.paths['model']}{name}.keras")
         self.model = model
     
@@ -75,6 +70,7 @@ class NeuralNetwork():
                                 batch_size = self.hp['batch_size'])
         
         # Save history, invoke plot elsewhere.
+        history.history['hp'] = self.hp
         with open(f'{self.paths["hist"]}{self.uid}.json', 'w') as f:
             f.write(json.dumps(history.history))
 
@@ -82,7 +78,8 @@ class NeuralNetwork():
         train_nn_end = time.time()
         train_nn_time = (train_nn_end - train_nn_start)/60
         print('NN training time: {:.3g} minutes.'.format(train_nn_time))
-    
+
+        self.model = nnetwork
         self.save_model(nnetwork, self.name)
         print('Successfully completed Neural Network training.')
     

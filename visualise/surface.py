@@ -44,7 +44,8 @@ def eq_lines(contour, gradient, B_lim, D_lim, n_sq):
           solid_lines.append(current_line)
     else:
       dashed_lines.append(current_line)
-  return np.array(solid_lines), np.array(dashed_lines)
+
+  return solid_lines, dashed_lines
 
 
 def show(D_grid, B_grid, dD_dt, dB_dt, D_lim, B_lim):
@@ -79,7 +80,7 @@ def show(D_grid, B_grid, dD_dt, dB_dt, D_lim, B_lim):
         ax_.set_ylim(0,D_lim)
         ax_.set_xlabel('Biomass ($kg/m^2$)', labelpad=20)
         ax_.set_ylabel('Soil depth ($m$)', labelpad=24)
-
+    print(len(dB_dt))
     # ax[0]
     ax[0].plot_surface(B_grid, D_grid, dB_dt, cmap=my_cmap_desaturated, linewidth=0.25, edgecolor = 'black', 
                     alpha=1, shade=False ,rstride=scale_surface, cstride=scale_surface)

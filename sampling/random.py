@@ -1,10 +1,8 @@
 from numpy import meshgrid, random, array
 
 class Random:
-    def __init__(self) -> None:
-        pass
-
-    def sample_stack(self, features, n_points, space_filling=False, random_state=0):
+    @staticmethod
+    def sample_stack(features, n_points, random_state=0, **kwargs):
         random.seed(random_state)
         points_per_feature = []
         for (start, end) in features:

@@ -5,7 +5,6 @@ class LatinHyperCube:
     @staticmethod
     def sample_stack(features, n_points, random_state=0,  **kwargs):
         feature_scales = list(zip(*features))
-        feature_scales = list(zip(features[0]))
 
         sampler = qmc.LatinHypercube(d=len(features), seed=random_state, **kwargs)
         sample = sampler.random(n=n_points)

@@ -29,6 +29,16 @@ def plot_history(history):
     plt.legend()
     plt.show()
 
+# Define the custom_mae function outside of the class to get around scope errors
+def custom_mae(dB_dt_std, dD_dt_std):
+    def mae(y_true, y_pred):
+        loss = y_pred - y_true
+        loss = loss / [dB_dt_std, dD_dt_std]
+        loss = tf.math.abs(loss)
+        loss = tf.math.reduce_sum(loss, axis=1)
+        return loss
+    return mae
+
 class NeuralNetwork():
     def __init__(self, hp, uid=None) -> None:
         self.dB_dt_std, self.dD_dt_std = 0, 0
@@ -58,7 +68,7 @@ class NeuralNetwork():
         self.model = model
     
     def load_model(self, name):
-        model = tf.keras.models.load_model(f"{self.paths['model']}{name}.keras")
+        model = tf.keras.models.load_model(f"{self.paths['model']}{name}.keras", custom_objects={'custom_mae': custom_mae(self.dB_dt_std, self.dD_dt_std)})
         self.model = model
         return model
     
@@ -70,16 +80,9 @@ class NeuralNetwork():
         np.random.seed(10)
     
         # Obtain the standard deviations of the training data
-        dB_dt_std = np.std(y_train[:, 0])
-        dD_dt_std = np.std(y_train[:, 1])
+        self.dB_dt_std = np.std(y_train[:, 0])
+        self.dD_dt_std = np.std(y_train[:, 1])
 
-        def custom_mae(y_true, y_pred):
-            loss = y_pred - y_true
-            loss = loss / [dB_dt_std, dD_dt_std]
-            loss = K.abs(loss)
-            loss = K.sum(loss, axis=1) 
-            return loss
-        
         # Define the model
         nnetwork = tf.keras.Sequential(name=self.name)
         for n_units in self.hp['units']:
@@ -97,7 +100,8 @@ class NeuralNetwork():
         nnetwork.compile(
             optimizer=tf.keras.optimizers.Adam(learning_rate=self.hp['learning_rate']), 
             # loss=tf.keras.losses.MeanAbsoluteError()
-            loss=custom_mae
+            # loss=self.custom_mae
+            loss=custom_mae(self.dB_dt_std, self.dD_dt_std)
         )
 
         train_nn_start = time.time()

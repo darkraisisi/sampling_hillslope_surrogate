@@ -70,8 +70,15 @@ class NeuralNetwork():
         np.random.seed(10)
     
         # Obtain the standard deviations of the training data
-        self.dB_dt_std = np.std(y_train[:, 0])
-        self.dD_dt_std = np.std(y_train[:, 1])
+        dB_dt_std = np.std(y_train[:, 0])
+        dD_dt_std = np.std(y_train[:, 1])
+
+        def custom_mae(y_true, y_pred):
+            loss = y_pred - y_true
+            loss = loss / [dB_dt_std, dD_dt_std]
+            loss = K.abs(loss)
+            loss = K.sum(loss, axis=1) 
+            return loss
         
         # Define the model
         nnetwork = tf.keras.Sequential(name=self.name)
@@ -89,7 +96,8 @@ class NeuralNetwork():
         # Compile and fit the model
         nnetwork.compile(
             optimizer=tf.keras.optimizers.Adam(learning_rate=self.hp['learning_rate']), 
-            loss=tf.keras.losses.MeanAbsoluteError()
+            # loss=tf.keras.losses.MeanAbsoluteError()
+            loss=custom_mae
         )
 
         train_nn_start = time.time()

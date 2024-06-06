@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
 import tensorflow as tf
 from keras import backend as K
+from tensorflow.keras.callbacks import EarlyStopping, LearningRateScheduler
 
 def load_history(uid):
     with open(f"data/history/{uid}.json", "r") as f:
@@ -22,15 +23,15 @@ def plot_history(history):
     plt.title(f"Training history\n\nLR: {history['hp']['learning_rate']}, BS: {history['hp']['batch_size']}, L1: {history['hp']['l1_reg']}")
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
-    plt.plot(history['loss'], label="Loss")
-    plt.plot(history['val_loss'], label="Val Loss")
+    plt.plot(history['loss'][1:], label="Loss")
+    plt.plot(history['val_loss'][1:], label="Val Loss")
     val_min = min(history['val_loss'])
-    plt.hlines(y=val_min, xmin=0, xmax=len(history['loss']), colors='green', linestyles='--', lw=2, label=f"Min(Val_loss) = {val_min:.3}")
+    plt.hlines(y=val_min, xmin=0, xmax=len(history['loss'])-1, colors='green', linestyles='--', lw=2, label=f"Min(Val_loss) = {val_min:.3}")
     plt.legend()
     plt.show()
 
-# Define the custom_mae function outside of the class to get around scope errors
 def custom_mae(dB_dt_std, dD_dt_std):
+# Define the custom_mae function outside of the class to get around scope errors
     def mae(y_true, y_pred):
         loss = y_pred - y_true
         loss = loss / [dB_dt_std, dD_dt_std]
@@ -73,8 +74,6 @@ class NeuralNetwork():
         return model
     
     def train(self, X_train, y_train, X_val, y_val, **kwargs):
-        print('Starting Neural Network training...')
-    
         # Set a random seed for tensorflow and numpy to ensure reproducibility
         tf.random.set_seed(10)
         np.random.seed(10)
@@ -83,17 +82,25 @@ class NeuralNetwork():
         self.dB_dt_std = np.std(y_train[:, 0])
         self.dD_dt_std = np.std(y_train[:, 1])
 
-        # Define the model
+        def scheduler(epoch, lr):
+            if epoch < self.hp['n_epochs']/2:
+                return lr
+            else:
+                return float(lr * np.exp(-0.025))
+
+        lr_scheduler = LearningRateScheduler(scheduler)
+        early_stopping = EarlyStopping(monitor='val_loss', patience=50, restore_best_weights=True)
+
         nnetwork = tf.keras.Sequential(name=self.name)
         for n_units in self.hp['units']:
             nnetwork.add(tf.keras.layers.Dense(
                 units=n_units, 
                 activation=self.hp['act_fun'],
-                kernel_regularizer=tf.keras.regularizers.l1(self.hp['l1_reg'])
+                kernel_regularizer=tf.keras.regularizers.l2(self.hp['l2_reg'])
             ))
         nnetwork.add(tf.keras.layers.Dense(
             2, activation='linear',
-            kernel_regularizer=tf.keras.regularizers.l1(self.hp['l1_reg'])
+            kernel_regularizer=tf.keras.regularizers.l2(self.hp['l2_reg'])
         ))
 
         # Compile and fit the model
@@ -110,6 +117,7 @@ class NeuralNetwork():
             epochs=self.hp['n_epochs'], 
             validation_data=(X_val, y_val),
             batch_size=self.hp['batch_size'],
+            callbacks=[lr_scheduler, early_stopping],
             **kwargs
         )
         
@@ -125,7 +133,6 @@ class NeuralNetwork():
 
         self.model = nnetwork
         # self.save_model(nnetwork, self.name)
-        print('Successfully completed Neural Network training.')
     
         # Retrieve the loss name
         try:

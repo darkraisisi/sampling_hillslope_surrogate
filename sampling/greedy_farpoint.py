@@ -3,7 +3,7 @@ from sampling.grid import Grid
 
 class GREEDYFP:
     @staticmethod
-    def sample_stack(bounds, n_samples, previous_samples=None, scale=10, refresh_count=10):
+    def sample_stack(bounds, n_samples, previous_samples=None, scale=10, refresh_count=10, **kwargs):
         """
         Perform hybrid BC-GreedyFP sampling, including previous samples if provided.
 
@@ -33,15 +33,29 @@ class GREEDYFP:
         def generate_candidates_grid():
             return np.array(Grid.sample_grid(bounds, n_candidates, False)).T.reshape(-1, len(bounds))
 
+        # def select_farthest(candidates, sampled_points):
+        #     if sampled_points.shape[0] > 0:
+        #         # dists = np.min(np.linalg.norm(candidates[:, np.newaxis] - sampled_points, axis=2), axis=1)
+        #         dists = np.min(np.sum(np.abs(candidates[:, np.newaxis] - sampled_points), axis=2), axis=1) # Manhatten distance.
+        #     else:
+        #         dists = np.full(len(candidates), np.inf)
+        #     max_dist = np.max(dists)
+        #     max_idx = np.where(dists == max_dist)[0]  # Find indices of maximum distances
+        #     farthest_idx = np.random.choice(max_idx)  # Randomly choose one of the indices multiple can be true.
+        #     # farthest_idx = np.argmax(dists)
+        #     return candidates[farthest_idx]
+        
         def select_farthest(candidates, sampled_points):
             if sampled_points.shape[0] > 0:
-                dists = np.min(np.linalg.norm(candidates[:, np.newaxis] - sampled_points, axis=2), axis=1)
+                # Manhattan distance
+                dists = np.sum(np.abs(candidates[:, np.newaxis] - sampled_points), axis=2)
+                min_dists = np.min(dists, axis=1)
+                weighted_dists = np.exp(min_dists)  # Exponential weighting
             else:
-                dists = np.full(len(candidates), np.inf)
-            max_dist = np.max(dists)
-            max_idx = np.where(dists == max_dist)[0]  # Find indices of maximum distances
+                weighted_dists = np.full(len(candidates), np.inf)
+            max_weighted_dist = np.max(weighted_dists)
+            max_idx = np.where(weighted_dists == max_weighted_dist)[0]  # Find indices of maximum distances
             farthest_idx = np.random.choice(max_idx)  # Randomly choose one of the indices multiple can be true.
-            # farthest_idx = np.argmax(dists)
             return candidates[farthest_idx]
 
         candidates = generate_candidates()

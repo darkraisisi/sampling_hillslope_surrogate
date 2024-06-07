@@ -20,7 +20,7 @@ def load_hp(uid):
 
 def plot_history(history):
     plt.figure(figsize=(12,6))
-    plt.title(f"Training history\n\nLR: {history['hp']['learning_rate']}, BS: {history['hp']['batch_size']}, L1: {history['hp']['l1_reg']}")
+    plt.title(f"Training history\n\nLR: {history['hp']['learning_rate']}, BS: {history['hp']['batch_size']}, L1: {history['hp'].get('l1_reg', 0)} , L2: {history['hp'].get('l2_reg', 0)}")
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.plot(history['loss'][1:], label="Loss")
@@ -58,6 +58,7 @@ class NeuralNetwork():
             'data': 'data/sample_set/',
             'pred': 'data/prediction/',
         }
+        self.history = {}
 
         if uid:
             self.load_model(self.name)
@@ -89,7 +90,7 @@ class NeuralNetwork():
                 return float(lr * np.exp(-0.025))
 
         lr_scheduler = LearningRateScheduler(scheduler)
-        early_stopping = EarlyStopping(monitor='val_loss', patience=50, restore_best_weights=True)
+        early_stopping = EarlyStopping(monitor='val_loss', patience=100, restore_best_weights=True)
 
         nnetwork = tf.keras.Sequential(name=self.name)
         for n_units in self.hp['units']:
@@ -112,7 +113,7 @@ class NeuralNetwork():
         )
 
         train_nn_start = time.time()
-        history = nnetwork.fit(
+        self.history = nnetwork.fit(
             X_train, y_train, 
             epochs=self.hp['n_epochs'], 
             validation_data=(X_val, y_val),
@@ -122,9 +123,9 @@ class NeuralNetwork():
         )
         
         # Save history, invoke plot elsewhere.
-        history.history['hp'] = self.hp
+        self.history.history['hp'] = self.hp
         with open(f'{self.paths["hist"]}{self.uid}.json', 'w') as f:
-            f.write(json.dumps(history.history))
+            f.write(json.dumps(self.history.history))
 
         # Calculate the training time and save the model
         train_nn_end = time.time()

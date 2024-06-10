@@ -1,4 +1,4 @@
-,method,n,mse_run,mse_method,mae_run,mae_method,hp,uid,epochs,fold,mae_diff,mse_diff
+index,method,n,mse_run,mse_method,mae_run,mae_method,hp,uid,epochs,fold,mae_diff,mse_diff
 72,GREEDYFP,25,0.0201835721360088,0.0335237744216725,0.071183466788694,0.1011110306713253,"{'units': [256, 256, 256, 128, 64], 'act_fun': 'relu', 'learning_rate': 0.005, 'batch_size': 32, 'l2_reg': 0.0001, 'n_epochs': 400}",20240610_185726,400.0,0,0.0299275638826312,0.0133402022856637
 73,GREEDYFP,25,0.031039361504248,0.0546286588552577,0.0865136680650109,0.1255649046254643,"{'units': [256, 256, 256, 128, 64], 'act_fun': 'relu', 'learning_rate': 0.005, 'batch_size': 32, 'l2_reg': 0.0001, 'n_epochs': 400}",20240610_185741,397.0,1,0.0390512365604533,0.0235892973510096
 74,GREEDYFP,25,0.0285199349810351,0.0497961709211632,0.0839753200906972,0.1206680914360364,"{'units': [256, 256, 256, 128, 64], 'act_fun': 'relu', 'learning_rate': 0.005, 'batch_size': 32, 'l2_reg': 0.0001, 'n_epochs': 400}",20240610_185757,146.0,2,0.0366927713453391,0.021276235940128

@@ -62,7 +62,7 @@ def show(D_grid, B_grid, dD_dt, dB_dt, D_lim, B_lim):
     jet_colors_desaturated = mc.hsv_to_rgb(jet_colors_hsv)
     my_cmap_desaturated = mc.ListedColormap(jet_colors_desaturated)
     
-    fig, ax = plt.subplots(1, 2, figsize=(20,12), subplot_kw={"projection": "3d"})
+    fig, ax = plt.subplots(1, 2, figsize=(10,6), subplot_kw={"projection": "3d"})
 
     ax[0].get_proj = lambda: np.dot(Axes3D.get_proj(ax[0]), np.diag([1, 1, 0.5, 1]))
     ax[1].get_proj = lambda: np.dot(Axes3D.get_proj(ax[1]), np.diag([1, 1, 0.5, 1]))

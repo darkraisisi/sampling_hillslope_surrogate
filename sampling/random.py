@@ -1,22 +1,32 @@
-from numpy import random, array, unravel_index
+import numpy as np
 
 class Random:
     @staticmethod
     def sample_stack(features, n_points, random_state=0, **kwargs):
-        random.seed(random_state)
+        # random.seed(random_state)
         points_per_feature = []
         for (start, end) in features:
             assert end > start
 
-            points_per_feature.append(random.uniform(start, end, n_points))
-        return array(points_per_feature)
-
+            points_per_feature.append(np.random.uniform(start, end, n_points))
+        return np.array(points_per_feature)
+    
     @staticmethod
-    def sample_stack_pdf(features, n_points, pdf, random_state=0, **kwargs):
+    def scale_min_max(x):
+        min_val = np.min(x)
+        max_val = np.max(x)
+        return (x - min_val) / (max_val - min_val)
+    
+    @staticmethod
+    def sample_stack_pdf(features, n_points, pdf, random_state=0, beta=2, **kwargs):
         flat = pdf.flatten()
-        sample_index = random.choice(a=flat.size, size=n_points, p=flat)
-        adjusted_index = unravel_index(sample_index, pdf.shape, order='F')
-        adjusted_index = array(list(zip(*adjusted_index)), dtype="float")
+        flat = np.power(flat, beta)
+        flat = Random.scale_min_max(flat)
+        flat = flat / sum(flat)
+
+        sample_index = np.random.choice(a=flat.size, size=n_points, p=flat)
+        adjusted_index = np.unravel_index(sample_index, pdf.shape, order='F')
+        adjusted_index = np.array(list(zip(*adjusted_index)), dtype="float")
         
         for dim in range(2):
             min_bound, max_bound = features[dim]

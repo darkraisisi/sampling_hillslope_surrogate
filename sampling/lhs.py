@@ -6,16 +6,34 @@ class LatinHyperCube:
     def sample_stack(features, n_points, random_state=0,  **kwargs):
         feature_scales = list(zip(*features))
 
-        sampler = qmc.LatinHypercube(d=len(features), seed=random_state)
+        sampler = qmc.LatinHypercube(d=len(features))
         sample = sampler.random(n=n_points)
         sample_scaled = qmc.scale(sample, *feature_scales)
         return sample_scaled[:,0], sample_scaled[:,1]
     
     @staticmethod
-    def stratify_pdf(pdf, num_strata):
+    def scale_min_max(x):
+        min_val = np.min(x)
+        max_val = np.max(x)
+        return (x - min_val) / (max_val - min_val)
+    
+    @staticmethod
+    def stratify_pdf(pdf, num_strata, beta=4):
         # Calculate the cumulative distribution function (CDF) for each axis
-        cdf_x = np.cumsum(np.sum(pdf, axis=1))
-        cdf_y = np.cumsum(np.sum(pdf, axis=0))
+        x = np.sum(pdf, axis=1)
+        y = np.sum(pdf, axis=0)
+
+        # Intermediate scale axis sums. Works much bettern then PDF scaling.
+        x = np.power(x, beta)
+        x = LatinHyperCube.scale_min_max(x)
+        x = x / np.sum(x)
+        
+        y = np.power(y, beta)
+        y = LatinHyperCube.scale_min_max(y)
+        y = y / np.sum(y)
+
+        cdf_x = np.cumsum(x)
+        cdf_y = np.cumsum(y)
 
         # Calculate the CDF split points for equal depth stratification
         split_points_x = np.linspace(0, 1, num_strata + 1)
@@ -30,10 +48,11 @@ class LatinHyperCube:
         strata_indices_x = np.concatenate(([0], strata_indices_x, [pdf.shape[1]]))
             
         return strata_indices_x, strata_indices_y
+
     
     
     @staticmethod
-    def sample_stack_pdf(bounds, n_samples, pdf):
+    def sample_stack_pdf(bounds, n_samples, pdf, beta=4):
         """
         Perform Latin Hypercube Sampling with weighting based on a given PDF.
 
@@ -49,7 +68,7 @@ class LatinHyperCube:
         lhs_samples = np.zeros((n_samples, n_dimensions))
         num_strata = int(np.sqrt(n_samples))
         
-        strata_indices_x, strata_indices_y = LatinHyperCube.stratify_pdf(pdf, num_strata)
+        strata_indices_x, strata_indices_y = LatinHyperCube.stratify_pdf(pdf, num_strata, beta)
         
         # Generate LHS samples
         sample_index = 0
@@ -82,7 +101,7 @@ class OrtogonalLatinHyperCube:
     def sample_stack(features, n_points, random_state=0, **kwargs):
         feature_scales = list(zip(*features))
 
-        sampler = qmc.LatinHypercube(d=len(features), strength=2, seed=random_state)
+        sampler = qmc.LatinHypercube(d=len(features), strength=2)
         sample = sampler.random(n=n_points)
         sample_scaled = qmc.scale(sample, *feature_scales)
         return sample_scaled[:,0], sample_scaled[:,1]

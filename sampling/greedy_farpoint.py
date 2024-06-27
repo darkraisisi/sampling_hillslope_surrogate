@@ -18,9 +18,31 @@ class GREEDYFP:
         tuple: Arrays representing the newly sampled points for each dimension.
         """
         n_candidates = n_samples * scale
+        
+        # Calculate scale for the second axis to match the range of the first axis.
+        # Method is calculating distances, if axis not equal axis's dont get equally treated.
+        first_range = bounds[0][1] - bounds[0][0]
+        second_range = bounds[1][1] - bounds[1][0]
+        axis_scale = first_range / second_range
+        
+        # Create equal bounds
+        equal_bounds = [(0, first_range), (0, first_range)]
+        
+        # Scale points to equal bounds
+        def scale_to_equal_bounds(points):
+            scaled_points = points.copy()
+            scaled_points[:, 1] *= axis_scale
+            return scaled_points
+        
+        # Scale points back to original bounds
+        def scale_from_equal_bounds(points):
+            scaled_points = points.copy()
+            scaled_points[:, 1] /= axis_scale
+            return scaled_points
+
         # Initialize sampled points
         if previous_samples is not None:
-            sampled_points = np.column_stack(previous_samples)
+            sampled_points = scale_to_equal_bounds(np.column_stack(previous_samples))
         else:
             sampled_points = np.empty((0, len(bounds)))
 
@@ -28,23 +50,11 @@ class GREEDYFP:
             return generate_candidates_random()
 
         def generate_candidates_random():
-            return np.array([np.random.uniform(low, high, n_candidates) for (low, high) in bounds]).T
+            return np.array([np.random.uniform(low, high, n_candidates) for (low, high) in equal_bounds]).T
 
         def generate_candidates_grid():
-            return np.array(Grid.sample_grid(bounds, n_candidates, False)).T.reshape(-1, len(bounds))
+            return np.array(Grid.sample_grid(equal_bounds, n_candidates, False)).T.reshape(-1, len(bounds))
 
-        # def select_farthest(candidates, sampled_points):
-        #     if sampled_points.shape[0] > 0:
-        #         # dists = np.min(np.linalg.norm(candidates[:, np.newaxis] - sampled_points, axis=2), axis=1)
-        #         dists = np.min(np.sum(np.abs(candidates[:, np.newaxis] - sampled_points), axis=2), axis=1) # Manhatten distance.
-        #     else:
-        #         dists = np.full(len(candidates), np.inf)
-        #     max_dist = np.max(dists)
-        #     max_idx = np.where(dists == max_dist)[0]  # Find indices of maximum distances
-        #     farthest_idx = np.random.choice(max_idx)  # Randomly choose one of the indices multiple can be true.
-        #     # farthest_idx = np.argmax(dists)
-        #     return candidates[farthest_idx]
-        
         def select_farthest(candidates, sampled_points):
             if sampled_points.shape[0] > 0:
                 # Manhattan distance
@@ -68,4 +78,4 @@ class GREEDYFP:
             new_sampled_points = np.vstack([new_sampled_points, farthest_point])
             candidates = np.delete(candidates, np.argmax(np.all(candidates == farthest_point, axis=1)), axis=0)
         
-        return tuple(new_sampled_points.T)
+        return tuple(scale_from_equal_bounds(new_sampled_points).T)

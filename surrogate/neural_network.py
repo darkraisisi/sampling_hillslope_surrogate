@@ -131,7 +131,7 @@ class NeuralNetwork():
         # Calculate the training time and save the model
         train_nn_end = time.time()
         train_nn_time = (train_nn_end - train_nn_start) / 60
-        print('NN training time: {:.3g} minutes.'.format(train_nn_time))
+        # print('NN training time: {:.3g} minutes.'.format(train_nn_time))
 
         self.model = nnetwork
         # self.save_model(nnetwork, self.name)
@@ -142,8 +142,8 @@ class NeuralNetwork():
         except AttributeError:
             loss_name = nnetwork.loss.name
 
-    def predict(self,X):
-        return self.model.predict(X)
+    def predict(self, X, **kwargs):
+        return self.model.predict(X, **kwargs)
 
     def show_history(self):
         plot_history(load_history(self.uid))

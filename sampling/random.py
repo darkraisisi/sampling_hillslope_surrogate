@@ -20,9 +20,10 @@ class Random:
     @staticmethod
     def sample_stack_pdf(features, n_points, pdf, random_state=0, beta=2, **kwargs):
         flat = pdf.flatten()
-        flat = np.power(flat, beta)
-        flat = Random.scale_min_max(flat)
-        flat = flat / sum(flat)
+        if beta > 0:
+            flat = np.power(flat, beta)
+            flat = Random.scale_min_max(flat)
+            flat = flat / sum(flat)
 
         sample_index = np.random.choice(a=flat.size, size=n_points, p=flat)
         adjusted_index = np.unravel_index(sample_index, pdf.shape, order='F')

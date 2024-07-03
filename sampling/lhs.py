@@ -22,15 +22,16 @@ class LatinHyperCube:
         # Calculate the cumulative distribution function (CDF) for each axis
         x = np.sum(pdf, axis=1)
         y = np.sum(pdf, axis=0)
-
-        # Intermediate scale axis sums. Works much bettern then PDF scaling.
-        x = np.power(x, beta)
-        x = LatinHyperCube.scale_min_max(x)
-        x = x / np.sum(x)
         
-        y = np.power(y, beta)
-        y = LatinHyperCube.scale_min_max(y)
-        y = y / np.sum(y)
+        if beta > 0:
+            # Intermediate scale axis sums. Works much bettern then PDF scaling.
+            x = np.power(x, beta)
+            x = LatinHyperCube.scale_min_max(x)
+            x = x / np.sum(x)
+            
+            y = np.power(y, beta)
+            y = LatinHyperCube.scale_min_max(y)
+            y = y / np.sum(y)
 
         cdf_x = np.cumsum(x)
         cdf_y = np.cumsum(y)
